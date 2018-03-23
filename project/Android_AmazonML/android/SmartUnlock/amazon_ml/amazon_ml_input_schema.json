@@ -1,0 +1,49 @@
+{
+  "version" : "1.0",
+  "rowId" : null,
+  "rowWeight" : null,
+  "targetAttributeName" : "safe",
+  "dataFormat" : "CSV",
+  "dataFileContainsHeader" : true,
+  "attributes" : [ {
+    "attributeName" : "localDay",
+    "attributeType" : "CATEGORICAL"
+  }, {
+    "attributeName" : "localTime",
+    "attributeType" : "NUMERIC"
+  }, {
+    "attributeName" : "g",
+    "attributeType" : "NUMERIC"
+  }, {
+    "attributeName" : "latitude",
+    "attributeType" : "NUMERIC"
+  }, {
+    "attributeName" : "longitude",
+    "attributeType" : "NUMERIC"
+  }, {
+    "attributeName" : "accuracy",
+    "attributeType" : "NUMERIC"
+  }, {
+    "attributeName" : "altitude",
+    "attributeType" : "NUMERIC"
+  }, {
+    "attributeName" : "speed",
+    "attributeType" : "NUMERIC"
+  }, {
+    "attributeName" : "wifi mac",
+    "attributeType" : "CATEGORICAL"
+  }, {
+    "attributeName" : "wifi ssid",
+    "attributeType" : "CATEGORICAL"
+  }, {
+    "attributeName" : "wifi signal level",
+    "attributeType" : "NUMERIC"
+  }, {
+    "attributeName" : "provider",
+    "attributeType" : "CATEGORICAL"
+  }, {
+    "attributeName" : "safe",
+    "attributeType" : "BINARY"
+  } ],
+  "excludedAttributeNames" : [ ]
+}
