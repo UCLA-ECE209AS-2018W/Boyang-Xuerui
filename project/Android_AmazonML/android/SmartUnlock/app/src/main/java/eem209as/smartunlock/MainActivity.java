@@ -1,0 +1,536 @@
+package eem209as.smartunlock;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
+
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationDelegate {
+
+//    private TextView mTextMessage;
+    private TextView displayText;
+    private TextView resultText;
+    private Button refreshBtn;
+    private Button safeBtn;
+    private Button dangerBtn;
+    private ImageView imageView;
+    private BottomNavigationView bottomNavigationView;
+    private boolean mPermissionReady;
+    protected boolean isAWSReady;
+    protected enum RunMode {
+        PREDICTION,
+        TEST
+    }
+    RunMode runMode = RunMode.PREDICTION;
+    private String checkingString = "Checking your surrounding environment, please wait...";
+
+    private SensorManager sm;
+    private LocationManager lm = null;
+    private LocationListener myLocationListener = null;
+
+    private AWSConnection awsConnection;
+
+    private DataClass myData = new DataClass();
+
+    static final String LOG_TAG = MainActivity.class.getCanonicalName();
+    private static final int delayMillisecond = 30000;//delay is 5 sec for each submission
+
+    // Create the Handler object (on the main thread by default)
+    Handler handler = new Handler();
+    // Define the code block to be executed
+    private Runnable runnableCode = new Runnable() {
+        @Override
+        public void run() {
+            // Do something here on the main thread
+            Log.d("Handlers", "Called on main thread");
+            setTextViewForTest();
+            Toast.makeText(getApplicationContext(), "UI refreshed!!!", Toast.LENGTH_LONG).show();
+            handler.postDelayed(this, delayMillisecond);
+        }
+    };
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.navigation_predict:
+                    runMode = RunMode.PREDICTION;
+                    predictCombo();
+//                    mTextMessage.setText(R.string.title_predict);
+                    return true;
+                case R.id.navigation_collect:
+                    runMode = RunMode.TEST;
+                    collectCombo();
+                    handler.post(runnableCode);
+//                    mTextMessage.setText(R.string.title_train);
+                    return true;
+            }
+            return false;
+        }
+    };
+
+
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        /**
+         * permission check
+         */
+        int coarseLocationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        int fineLocationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+
+        mPermissionReady = coarseLocationPermission == PackageManager.PERMISSION_GRANTED
+                && fineLocationPermission == PackageManager.PERMISSION_GRANTED;
+
+        if (!mPermissionReady) {
+            requestPermission();
+        }
+        awsConnection = new AWSConnection(this);
+        awsConnection.initialize();
+
+//        mTextMessage = (TextView) findViewById(R.id.message);
+        displayText = findViewById(R.id.text_display);
+        resultText = findViewById(R.id.text_result);
+        refreshBtn = findViewById(R.id.refresh_button);
+        safeBtn = findViewById(R.id.safe_button);
+        dangerBtn = findViewById(R.id.danger_button);
+        imageView = findViewById(R.id.image_result);
+        bottomNavigationView = findViewById(R.id.navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        imageView.setImageResource(0);
+
+        displayText.setGravity(Gravity.NO_GRAVITY);
+        resultText.setGravity(Gravity.CENTER);
+        myLocationListener = new MyLocationListener(this);
+
+        sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sm.registerListener(this, sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+
+        lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        if(mPermissionReady){
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, myLocationListener);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myLocationListener);
+        }
+
+
+//        handler.post(runnableCode);
+        refreshBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(runMode == RunMode.PREDICTION && isAWSReady){
+                    displayText.setText(checkingString);
+                    imageView.setImageResource(0);
+                    resultText.setText("");
+                    updateInfo();
+                    awsConnection.callPredict(myData);
+                }
+//                else
+//                    setTextViewForTest();
+//                setTextViewForTest();
+            }
+        });
+        safeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myData.isSafe = true;
+                Toast.makeText(getApplicationContext(), "Safe mode activated", Toast.LENGTH_LONG).show();
+            }
+        });
+        dangerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myData.isSafe = false;
+                Toast.makeText(getApplicationContext(), "Dangerous mode activated", Toast.LENGTH_LONG).show();
+            }
+        });
+
+
+        //default mode is set to predict mode
+        runMode = RunMode.PREDICTION;
+        safeBtn.setVisibility(View.INVISIBLE);
+        dangerBtn.setVisibility(View.INVISIBLE);
+        resultText.setVisibility(View.VISIBLE);
+        handler.removeCallbacks(runnableCode);
+        displayText.setGravity(Gravity.CENTER);
+        displayText.setTextSize(32);
+        resultText.setTextSize(60);
+        bottomNavigationView.getMenu().getItem(0).setChecked(true);
+    }
+
+    private void requestPermission(){
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION}, 11);
+    }
+
+    private void predictCombo(){
+
+        safeBtn.setVisibility(View.INVISIBLE);
+        dangerBtn.setVisibility(View.INVISIBLE);
+        resultText.setVisibility(View.VISIBLE);
+        imageView.setVisibility(View.VISIBLE);
+        refreshBtn.setVisibility(View.VISIBLE);
+
+        resultText.setText("");
+        imageView.setImageResource(0);
+        displayText.setGravity(Gravity.CENTER);
+        displayText.setTextSize(32);
+        resultText.setTextSize(60);
+
+        displayText.setText(checkingString);
+        handler.removeCallbacks(runnableCode);
+        if(isAWSReady){
+            updateInfo();
+            awsConnection.callPredict(myData);
+        }
+    }
+
+    private void collectCombo(){
+        safeBtn.setVisibility(View.VISIBLE);
+        dangerBtn.setVisibility(View.VISIBLE);
+        resultText.setVisibility(View.INVISIBLE);
+        imageView.setVisibility(View.INVISIBLE);
+        refreshBtn.setVisibility(View.INVISIBLE);
+
+        displayText.setGravity(Gravity.NO_GRAVITY);
+        displayText.setTextSize(12);
+    }
+
+    @SuppressLint("MissingPermission")
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Map<String, Integer> perm = new HashMap<>();
+        perm.put(Manifest.permission.ACCESS_COARSE_LOCATION, PackageManager.PERMISSION_DENIED);
+        perm.put(Manifest.permission.ACCESS_FINE_LOCATION, PackageManager.PERMISSION_DENIED);
+        for (int i = 0; i < permissions.length; i++) {
+            perm.put(permissions[i], grantResults[i]);
+        }
+        if (perm.get(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && perm.get(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Log.i(LOG_TAG, "permission granted");
+            mPermissionReady = true;
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, myLocationListener);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myLocationListener);
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    protected void awsCallBack(){
+        runOnUiThread(()->{
+            StringBuilder dis = new StringBuilder("Your current status is: ");
+            StringBuilder res = new StringBuilder();
+
+            displayText.setText(dis);
+
+            if(myData.result == 1) {
+                resultText.setTextColor(Color.GREEN);
+                imageView.setImageResource(R.drawable.shield_yes_128);
+                res.append("Safe");
+            }
+            else{
+                resultText.setTextColor(Color.RED);
+                imageView.setImageResource(R.drawable.shield_no_128);
+                res.append("Danger");
+            }
+            resultText.setText(res);
+        });
+    }
+    private void updateInfo(){
+        myData.wifiInfo = WifiUtils.getDetailsWifiInfo(this);
+//        timeStamp = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(Calendar.getInstance().getTime());
+        Date now = Calendar.getInstance().getTime();
+        myData.dayStamp = new SimpleDateFormat("EEEE").format(now);
+        myData.timeStamp = new SimpleDateFormat("HH:mm:ss").format(now);
+    }
+    public void setTextViewForTest() {
+        updateInfo();
+        StringBuilder dis = new StringBuilder("You just Refreshed!!!\n");
+        dis.append("day is: ").append(myData.dayStamp).append("\n");
+        dis.append("time is: ").append(myData.timeStamp).append("\n");
+        dis.append("the current situation is: ").append(myData.isSafe ? "Safe" : "Dangerous").append("\n");
+        dis.append("ax is: ").append(myData.ax).append("\n");
+        dis.append("ay is: ").append(myData.ay).append("\n");
+        dis.append("az is: ").append(myData.az).append("\n");
+        dis.append("g is: ").append(myData.g).append("\n");
+        dis.append("latitude is: ").append(myData.lat).append("\n");
+        dis.append("longitude is: ").append(myData.lng).append("\n");
+        dis.append("altitude is: ").append(myData.alt).append("\n");
+        dis.append("accuracy is: ").append(myData.acu).append("\n");
+        dis.append("speed is: ").append(myData.speed).append("\n");
+        dis.append("provider is: ").append(myData.provider).append("\n");
+        dis.append("Wifi info: \n");
+        dis.append("BSSID: ").append(myData.wifiInfo.get("BSSID")).append("\n");
+        dis.append("SSID: ").append(myData.wifiInfo.get("SSID")).append("\n");
+        dis.append("RSSI: ").append(myData.wifiInfo.get("RSSI")).append("\n");
+//        dis.append("Wifi info: ").append(WifiUtils.getDetailsWifiInfo(this)).append("\n");
+//        dis.append("Bluetooth info: ").append(BLEUtils.getDeviceList(this)).append("\n");
+        List<BluetoothDevice> deviceList = BLEUtils.getDeviceList();
+        if(deviceList != null && deviceList.size() != 0) {
+            dis.append("Bluetooth Name: ").append(deviceList.get(0).getName()).append("\n");
+            dis.append("Bluetooth MAC: ").append(deviceList.get(0).getAddress()).append("\n");
+        }
+        displayText.setText(dis);
+        new SendRequest().execute();
+
+    }
+
+
+    @Override
+    protected void onPause() {
+//        sm.unregisterListener(this);
+//        lm.removeUpdates(this);
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+//        sm.registerListener(this, sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+//        lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, myLocationListener);
+//        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myLocationListener);
+        if(runMode == RunMode.PREDICTION) {
+            resultText.setText("");
+            imageView.setImageResource(0);
+            if(isAWSReady) {
+                displayText.setText(checkingString);
+                updateInfo();
+                awsConnection.callPredict(myData);
+            }
+        }
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        sm.unregisterListener(this);
+        lm.removeUpdates(myLocationListener);
+        handler.removeCallbacks(runnableCode);
+        super.onDestroy();
+    }
+
+    public void onSensorChanged(SensorEvent event) {
+        if (Sensor.TYPE_ACCELEROMETER == event.sensor.getType()) {
+
+            float[] values = event.values;
+            myData.ax = values[0];
+            myData.ay = values[1];
+            myData.az = values[2];
+
+            myData.g = Math.sqrt(myData.ax * myData.ax + myData.ay * myData.ay + myData.az * myData.az);
+        }
+
+    }
+
+    public void onAccuracyChanged(Sensor arg0, int arg1) {
+
+    }
+
+    @Override
+    public void returnLocation(Location location) {
+//         获取纬度
+        myData.lat = location.getLatitude();
+            // 获取经度
+        myData.lng = location.getLongitude();
+            // 位置提供者
+        myData.provider = location.getProvider();
+            // 位置的准确性
+        myData.acu = location.getAccuracy();
+            // 高度信息
+        myData.alt = location.getAltitude();
+            // 方向角
+//            float bearing = location.getBearing();
+            // 速度 米/秒
+        myData.speed = location.getSpeed();
+//            setTextViewForTest();
+    }
+
+
+
+    public class SendRequest extends AsyncTask<String, Void, String> {
+
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected String doInBackground(String... arg0) {
+
+            try {
+
+                URL url = new URL("https://script.google.com/macros/s/AKfycbxTRzHmTU8joKrn7cGiIB-EiBCBCG32zjdRoZTQdnlzz3vUW1QL/exec");
+
+                JSONObject postDataParams = new JSONObject();
+
+                String id = "1XWgJdLQUH5hGd9vTstlrqx9VSjSerWB4eXTVedqorBE";
+
+                int dayInt;
+                switch (myData.dayStamp){
+                    case "Monday":
+                        dayInt = 1;
+                        break;
+                    case "Tuesday":
+                        dayInt = 2;
+                        break;
+                    case "Wednesday":
+                        dayInt = 3;
+                        break;
+                    case "Thursday":
+                        dayInt = 4;
+                        break;
+                    case "Friday":
+                        dayInt = 5;
+                        break;
+                    case "Saturday":
+                        dayInt = 6;
+                        break;
+                    case "Sunday":
+                        dayInt = 7;
+                        break;
+                    default:
+                        dayInt = 0;
+                        break;
+                }
+                postDataParams.put("localDay", dayInt);
+                postDataParams.put("localTime", myData.timeStamp);
+                postDataParams.put("ax", myData.ax);
+                postDataParams.put("ay", myData.ay);
+                postDataParams.put("az", myData.az);
+                postDataParams.put("g", myData.g);
+                postDataParams.put("latitude", myData.lat);
+                postDataParams.put("longitude", myData.lng);
+                postDataParams.put("altitude", myData.alt);
+                postDataParams.put("accuracy", myData.acu);
+                postDataParams.put("speed", myData.speed);
+                postDataParams.put("provider", myData.provider);
+                postDataParams.put("wifi mac", myData.wifiInfo.get("BSSID"));
+                postDataParams.put("wifi ssid", myData.wifiInfo.get("SSID"));
+                postDataParams.put("wifi signal level", myData.wifiInfo.get("RSSI"));
+                postDataParams.put("safe", myData.isSafe);
+
+//                postDataParams.put("id", id);
+
+                Log.i("params", postDataParams.toString());
+
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setReadTimeout(15000 /* milliseconds */);
+                conn.setConnectTimeout(15000 /* milliseconds */);
+                conn.setRequestMethod("POST");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+
+                OutputStream os = conn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(os, "UTF-8"));
+                writer.write(getPostDataString(postDataParams));
+
+                writer.flush();
+                writer.close();
+                os.close();
+
+                int responseCode = conn.getResponseCode();
+
+                if (responseCode == HttpsURLConnection.HTTP_OK) {
+
+                    BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb = new StringBuilder("");
+                    String line = "";
+
+                    while ((line = in.readLine()) != null) {
+                        sb.append(line);
+                        break;
+                    }
+
+                    in.close();
+                    return sb.toString();
+
+                } else {
+                    return new String("false : " + responseCode);
+                }
+            } catch (Exception e) {
+                return new String("Exception: " + e.getMessage());
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            Log.i("PostResult", result);
+            Toast.makeText(getApplicationContext(), result,
+                    Toast.LENGTH_LONG).show();
+
+        }
+    }
+
+    public String getPostDataString(JSONObject params) throws Exception {
+
+        StringBuilder result = new StringBuilder();
+        boolean first = true;
+
+        Iterator<String> itr = params.keys();
+
+        while (itr.hasNext()) {
+
+            String key = itr.next();
+            Object value = params.get(key);
+
+            if (first)
+                first = false;
+            else
+                result.append("&");
+
+            result.append(URLEncoder.encode(key, "UTF-8"));
+            result.append("=");
+            result.append(URLEncoder.encode(value.toString(), "UTF-8"));
+
+        }
+        return result.toString();
+    }
+
+}
