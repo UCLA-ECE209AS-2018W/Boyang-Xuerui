@@ -95,7 +95,6 @@ On the prediction part, we wrote two connection type for two app. One is based o
 collected data) and send it back to the corresponding destination based on the platform we use. 
 
 ![phone check](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/predict_checking.png?raw=false)
-![predict result](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/predict_result.png?raw=false)
 
 ### Android App + Server (RPi)  + AWS IoT + Random Forest
 
@@ -117,6 +116,8 @@ As for this system implementation, the preprocessed data are stored in the Amazo
 
 We utilized logistic regression algorithm in the prediction model of Amazon ML, though the data we collected is kind of unbalanced, the prediction result shows the model still have really good and reliable accuracy of prediction. As the plot shown below, the SAFE (1) / DANGEROUS (0) conditions/labels are well distinguished and predicted.
 
+![logistic regression](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/lr.png?raw=true)
+
 As for the advantages of this system implementation, as the cloud service from AWS, it is really easy to be deployed and very salable. In addition, it has very low latency. Based on our test with from phone request to Amazon ML response, it is sub-second level latency. Besides, the system shows really good reliability, and AWS also guarantee the security.  
 
 As for the disadvantages of the system, we have to pay the fee to AWS by the number of predictions and hourly reserved capacity as our service this real-time prediction. In addition, there is the limitation of Amazon ML. We can only train and implement several types of machine learning models including neural network, linear regression, and logistic regression. So the freedom of choice of our prediction models is relatively constrained, but it could be expected AWS would add more model options for developers. 
@@ -128,6 +129,8 @@ In this section, we will make the comparison of other similar implementation wit
 ### Performance compared with phone’s original feature
 
 In order to evaluate how Smart Lock can help user to save log in times, we develop some test and compare the performance of Smart Lock vs Original phone. 
+
+![performance](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/performance.png?raw=true)
 
 * The true positive rate is defined when the given current situation is safe and the prediction result is also safe
 
