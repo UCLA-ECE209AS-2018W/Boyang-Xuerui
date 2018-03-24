@@ -1,6 +1,6 @@
 # Boyang-Xuerui
 
-github webpage:
+Github Webpage:
 
 https://ucla-ece209as-2018w.github.io/Boyang-Xuerui/
 
@@ -11,4 +11,12 @@ https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/presentation/Pr
 
 
 
-first demo videos:
+First Demo Videos:
+
+In home: https://vimeo.com/261200606
+
+In private car: https://vimeo.com/261200767
+
+In strange room: https://vimeo.com/261200785
+
+*video password: ece209as*
