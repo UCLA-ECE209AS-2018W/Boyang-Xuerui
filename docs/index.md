@@ -55,11 +55,15 @@ After the model training and evaluation in this step, we found that Bluetooth da
 
 Finally, we obtain our meaningful features for our dataset, which could then be used to train the model and evaluate the results. The final selected features are shown below.
 
+![selected feature](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/selected_feature.png?raw=true)
+
 Also, as we mentioned above, the label of our dataset is Safety which is binary, SAFE (1) and DANGEROUS (0). The users will play the role of labeling data in the data collection process.  
 
 ### Model Training 
 
 After the feature selection (x), along with labeled target data (y), we are able to do the entire processes of model training and testing, and get the accuracy score of each model and process the assessment. To see each performance of the model, we utilize python scikit-learn machine learning library and train the model locally. Based on our observation and verification, we found split the train-test sets to 0.7-0.3 would generally has the best performance for each model, so we change the *test_size*=0.3 in the model. For each model that we selected and mentioned in the section of Machine Learning Algorithm Selection, the modules of sklearn has them ready and if we need those, we just import those model modules in the Python code.  
+
+![ml model](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/ml_model.png?raw=true)
 
 Need to note, in this project and the following results of model accuracy score, the method that we use is **accuracy_score** in **metrics** module in scikit-learn, which is accuracy classification score and equivalent to Jaccard similarity coefficient score. The Jaccard index/similarity coefficient, defined as the size of the intersection divided by the size of the union of two label sets, which is used to compare set of predicted labels (predicted label) for the test sample to the corresponding set of labels in **y_true** (ground truth label).
 
@@ -67,7 +71,11 @@ As for the validation technique, model validation technique is used for assessin
 
 As for holdout method, it is a type of simple validation that is isolated and involves a single run. The data points are randomly assigned to two sets s0 and s1, as is known, called the training dataset and the test dataset, respectively, which is dealed by **model_selection.train_test_split** method of sklearn. The size of each of the sets is arbitrary and randomly picked with the parameter of random_state provided by the train_test_split method. We then train on s0 and test on s1. We test the holdout validation method with the methods we selected in previous section. Agreeing control variable method, we pick train-test split test_size=0.3. The performance result is shown in the table below.
 
+![selected feature](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/10_cross_validation.png?raw=true)
+
 In terms of k-fold cross-validation method, the original sample is randomly split into k equal-sized sub-datasets. Of the k sub-datasets, a single sub-dataset is retained as the validation data for testing the model, and the remaining k − 1 sub-datasets are used for training data. The cross-validation process is then repeated k times (the folds), with each of the k sub-datasets used exactly once as the sets of validation data. The k results from the folds can then be averaged to yield a single estimation/prediction. In our project, we implement the evaluation of 10-fold cross-validation which is commonly used with **cross_val_predict** (cv=10) method from **sklearn.model_selection** module. The performance result is shown in the table below. 
+
+![selected feature](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/performance_without_validation.png?raw=true)
 
 From the validation results above, we can see although some accuracy results of these models with Holdout validation are better than that of 10-fold Cross-Validation Method, we believe it is due the train-test data random selection mechanism of holdout method. Therefore it is not reliable and stable enough. However, if we look at the 10-fold Cross-Validation, due its partition mechanism of train-test datasets, the results are more convincing, especially under the large dataset such as our case. Therefore, if the model performs well under 10-fold Cross-Validation, it is robust and stable enough to be selected as our prediction model. Based on the results above, we decided to try **Random Forest** and **Logistic Regression** as prediction models in our real-world system implementations. 
 
@@ -81,8 +89,13 @@ We actually develop three app for this project, one for data collection, one for
 
 For the data collection part, we use multiple thread that running continuously in the background to collect different data. These different threads can be concluded as Wifi Monitor Thread, Location Listening Thread and Bluetooth Monitor Thread. We also have another thread that automatically send data every 30 seconds to Google Spreadsheet, where our data is stored in this spreadsheet. We also designed two button (safe or dangerous) for user to define the label. 
 
+![data collect](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/data_collect.png?raw=true)
+
 On the prediction part, we wrote two connection type for two app. One is based on the AWS IoT platform and another one is based on the Amazon Machine Learning platform. once the user switch to the predict mode, the app will automatically collect the current status of the user(all the 
 collected data) and send it back to the corresponding destination based on the platform we use. 
+
+![phone check](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/predict_checking.png?raw=true)
+![predict result](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/predict_result.png?raw=true)
 
 ### Android App + Server (RPi)  + AWS IoT + Random Forest
 
