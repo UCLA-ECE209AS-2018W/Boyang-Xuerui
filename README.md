@@ -19,4 +19,4 @@ In private car: https://vimeo.com/261200767
 
 In strange room: https://vimeo.com/261200785
 
-* video password: ece209as
+*video password: ece209as
