@@ -25,7 +25,7 @@ Prior to our study, we acknowledged that there are some related work that has be
 TensorFlow Lite is a lightweight version of TensorFlow. It enables on-device machine learning inference with low latency and a small binary size, and is designed for mobile and embedded devices. TensorFlow Lite supports a set of core operators, both quantized and float, which have been tuned for mobile platforms. 
 TensorFlow Lite was released in late 2017 as developer review, and is currently only supporting a few models from TensorFlow. Therefore, we are not gonna use TensorFlow Lite for our project at this time. 
 
-![TensorFlow example with image recogition](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/motocycle.png)
+![TensorFlow example with image recogition](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/motocycle.png?raw=true)
 
 ## Methodology
 
@@ -47,7 +47,7 @@ As for the selection of machine learning algorithms for our prediction model, af
 
 As is known, in order to train and obtain better model for our prediction goal, it is really necessary to do the feature selection before precisely estimating models. The list shown below represents our original data features taken from the smartphone sensors in the data collection part.
 
-![Original Features](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/original_feature.png)
+![Original Features](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/original_feature.png?raw=true)
 
 It can be seen that original features that we selected are a lot. We try to catch as many features as possible to be used in our model, but it is also really crucial to remove trivial/unmeaningful features. So firstly we use observation and manual selection in order to do primary selection. We removes the feature of Server time as it can be entirely represented by the feature of Local day and Local time; we also remove the acceleration values of the phone in x,y,z direction, as we really did not see the important features that they potentially have, but they could also pollute the dataset due to their unmeaningful existence, so we think the calculated total acceleration would have enough information to machine learning prediction models. After the observation step, we selected the above selected machine learning models to be trained with different feature combinations, and then score the trained models, finally select the important features as final model. To implement the feature selections for our datasets, the classes in the **sklearn.feature_selection** module is a good choice, it can be used for feature selection/dimensionality reduction on sample sets, either to improve accuracy scores of the estimator or to boost their performance on datasets that is high dimensional.
 
