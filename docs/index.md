@@ -166,38 +166,38 @@ Considering the fact that some user may not want us to know “everything” the
 
 ## References
 
-http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7153935&tag=1
+[1] http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7153935&tag=1
 
 Intelligent Display Auto-lock Scheme for Mobile Devices by Nai-Wei Lo
 
-https://link.springer.com/content/pdf/10.1007/978-3-642-41674-3_63.pdf
+[2] https://link.springer.com/content/pdf/10.1007/978-3-642-41674-3_63.pdf
 
 Smartphone Based Data Mining for Fall Detection: Analysis and Design by Abdul Hakim
 
-http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6258136
+[3] http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6258136
 
 Design and Implementation of an On-body Placement-aware Smartphone by Kaori Fujinami
 
-https://www.ncbi.nlm.nih.gov/pubmed/22205862
+[4] https://www.ncbi.nlm.nih.gov/pubmed/22205862
 
 Machine learning methods for classifying human physical activity from on-body accelerometers
 
-https://www.sciencedirect.com/science/article/pii/S1877050917302065
+[5] https://www.sciencedirect.com/science/article/pii/S1877050917302065
 
 Smartphone Based Data Mining for Fall Detection: Analysis and Design
 
-http://elaineshi.com/docs/isc.pdf
+[6] http://elaineshi.com/docs/isc.pdf
 
 Implicit Authentication through Learning User Behavior
 
-https://serverlesscode.com/post/deploy-scikitlearn-on-lamba/
+[7] https://serverlesscode.com/post/deploy-scikitlearn-on-lamba/
 
 Using scikit-learn in AWS Lambda
 
-https://docs.aws.amazon.com/machine-learning/latest/dg/requesting-real-time-predictions.html
+[8] https://docs.aws.amazon.com/machine-learning/latest/dg/requesting-real-time-predictions.html
 
 Requesting Real-time prediction
 
-https://www.androidpolice.com/2015/03/20/trusted-butts-new-on-body-detection-smart-lock-mode-in-android-seems-to-be-hitting-some-devices/
+[9] https://www.androidpolice.com/2015/03/20/trusted-butts-new-on-body-detection-smart-lock-mode-in-android-seems-to-be-hitting-some-devices/
 
 New “On-Body Detection” Smart Lock Mode in Android Seems To Be Hitting Some Devices
