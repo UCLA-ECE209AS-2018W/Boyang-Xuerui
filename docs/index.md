@@ -25,7 +25,7 @@ Prior to our study, we acknowledged that there are some related work that has be
 TensorFlow Lite is a lightweight version of TensorFlow. It enables on-device machine learning inference with low latency and a small binary size, and is designed for mobile and embedded devices. TensorFlow Lite supports a set of core operators, both quantized and float, which have been tuned for mobile platforms. 
 TensorFlow Lite was released in late 2017 as developer review, and is currently only supporting a few models from TensorFlow. Therefore, we are not gonna use TensorFlow Lite for our project at this time. 
 
-![TensorFlow example with image recogition](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/tree/master/pics/motocycle.png?raw=true)
+![TensorFlow example with image recogition](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/motocycle.png)
 
 ## Methodology
 
