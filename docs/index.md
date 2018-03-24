@@ -89,15 +89,17 @@ We actually develop three app for this project, one for data collection, one for
 
 For the data collection part, we use multiple thread that running continuously in the background to collect different data. These different threads can be concluded as Wifi Monitor Thread, Location Listening Thread and Bluetooth Monitor Thread. We also have another thread that automatically send data every 30 seconds to Google Spreadsheet, where our data is stored in this spreadsheet. We also designed two button (safe or dangerous) for user to define the label. 
 
-![data collect](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/data_collect.png?raw=true)
+![data collect](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/data_collect.png?raw=false)
 
 On the prediction part, we wrote two connection type for two app. One is based on the AWS IoT platform and another one is based on the Amazon Machine Learning platform. once the user switch to the predict mode, the app will automatically collect the current status of the user(all the 
 collected data) and send it back to the corresponding destination based on the platform we use. 
 
-![phone check](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/predict_checking.png?raw=true)
-![predict result](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/predict_result.png?raw=true)
+![phone check](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/predict_checking.png?raw=false)
+![predict result](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/predict_result.png?raw=false)
 
 ### Android App + Server (RPi)  + AWS IoT + Random Forest
+
+![iot](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/phone_localserver_awsiot.png?raw=true)
 
 In this system implementation, we utilize the implemented Android App to communicate with the built local server under the protocol and policy of AWS IoT service. The local server will handle the Machine Learning Safety Check Model, including data training and label prediction. As mentioned, We mainly implemented machine learning prediction model with Python sklearn library and with the result receiving and sending scripts, the safety check result will finally be sent to the mobile end. More specifically:
 
@@ -108,6 +110,8 @@ As for the advantages of this system implementation, it is actually very flexibl
 However, this system do also have its limitations. For instance, it has weak scalability, so you need almost need to redeploy everything again and again if you want to have more systems with different applying environment, as the AWS IoT would limit the certificates so that each thing in the AWS IoT need to have unique ID, which would give rise to the restriction of scalability. Besides, the latency is another issue, in our system, the rpi average response time for each phone request is 3 - 5s, which is too long for user to wait the decision made by phone. Nonetheless, this latency issue could be resolved with the computer or the cluster which have better computing power, so this issue is really computation and computer performance dependent. 
 
 ### Android App + Amazon Machine Learning + Amazon S3 + Logistic Regression
+
+![amazon ml](https://github.com/UCLA-ECE209AS-2018W/Boyang-Xuerui/blob/master/pics/phone_AmazonML.png?raw=true)
 
 As for this system implementation, the preprocessed data are stored in the Amazon S3 as data storage warehouse. Then the developer is able to select the features and tune the parameters for building and training the dataset by using Amazon Machine Learning. After the model is built, we would create real-time prediction endpoint for phone to do safety check request. If there is a check request sent by the phone, Amazon ML will receive the phone check HTTP request through Amazon ML Predict API. The request with feature data will be read and plug into the built prediction Safety Check Model, and yield the prediction result and it to the phone with HTTP response.
 
